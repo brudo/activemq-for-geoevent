@@ -67,6 +67,10 @@ public class ActiveMQOutboundTransportDefinition extends TransportDefinitionBase
     return "com.esri.geoevent.transport.outbound";
   }
 
+  @Override
+  public String getVersion() {
+    return "10.3.0";
+  }
 
   @Override
   public String getLabel() {
