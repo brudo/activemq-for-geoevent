@@ -50,6 +50,9 @@ public class ActiveMQInboundTransportDefinition extends TransportDefinitionBase 
       propertyDefinitions.put("destinationName", new PropertyDefinition("destinationName", PropertyType.String, null, "${com.esri.geoevent.transport.activemq-transport.TRANSPORT_IN_JMS_DESTINATION_NAME_LBL}", "${com.esri.geoevent.transport.activemq-transport.TRANSPORT_IN_JMS_DESTINATION_NAME_DESC}", true, false));
       propertyDefinitions.put("userName", new PropertyDefinition("userName", PropertyType.String, null, "${com.esri.geoevent.transport.activemq-transport.TRANSPORT_IN_USERNAME_LBL}", "${com.esri.geoevent.transport.activemq-transport.TRANSPORT_IN_USERNAME_DESC}", false, false));
       propertyDefinitions.put("password", new PropertyDefinition("password", PropertyType.Password, null, "${com.esri.geoevent.transport.activemq-transport.TRANSPORT_IN_PASSWORD_LBL}", "${com.esri.geoevent.transport.activemq-transport.TRANSPORT_IN_PASSWORD_DESC}", false, false));
+      propertyDefinitions.put("bypassCertificateCheck", new PropertyDefinition("bypassCertificateCheck", PropertyType.Boolean, false, "Bypass Certificate Check (SSL)", "Bypass Certificate Check (SSL)", false, false));
+      // TODO allow for trusted / known server certificates? is it possible to use ArcGIS Server's trust store for this? otherwise, broker
+      // will need a public CA-signed certificate, or bypassCertificateCheck is required and we have only encryption, not trusted identity
     } catch (PropertyException error) {
       String errorMsg = LOGGER.translate("IN_INIT_ERROR", error.getMessage());
       LOGGER.error(errorMsg, error);

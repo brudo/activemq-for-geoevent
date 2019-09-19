@@ -37,6 +37,13 @@ import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.transport.TransportListener;
 
+
+import org.apache.activemq.broker.SslContext;
+import org.apache.activemq.ActiveMQSslConnectionFactory;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.TrustManager;
+
 import javax.jms.*;
 import java.io.*;
 import java.net.URLDecoder;
@@ -277,7 +284,10 @@ public class ActiveMQInboundTransport extends InboundTransportBase implements Ru
 
   private boolean setup() throws JMSException, TransportException {
     try {
-      ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(getProperty("providerUrl").getValueAsString());
+      ActiveMQConnection amqConnInit = null;
+      Property providerUrl = getProperty("providerUrl");
+      ActiveMQSslConnectionFactory factory = new ActiveMQSslConnectionFactory(providerUrl.getValueAsString());
+      
       Property userNameProp = getProperty("userName");
       Property passwordProp = getProperty("password");
       if (userNameProp != null && passwordProp != null) {
@@ -292,11 +302,45 @@ public class ActiveMQInboundTransport extends InboundTransportBase implements Ru
           throw new TransportException("Password encrypted property access failed - " + e.getMessage());
         }
       }
+      
+      Property bypassCertificateCheck = getProperty("bypassCertificateCheck");
+      if (bypassCertificateCheck != null && bypassCertificateCheck.getValue().equals(true))
+      {
+        TrustManager[] dummyTrustManager = new X509TrustManager[]
+        {
+          new X509TrustManager()
+          {
+            @Override public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+            @Override public void checkClientTrusted(X509Certificate[] certs, String authType) { }
+            @Override public void checkServerTrusted(X509Certificate[] certs, String authType) { }
+          }
+        };
+        
+        // this installs the dummy trust manager for direct ssl:// but does not affect failover or discovery
+        factory.setKeyAndTrustManagers(null, dummyTrustManager, null);
 
-      final ActiveMQConnection amqConn = (ActiveMQConnection) factory.createConnection();
-      if (amqConn == null) {
+        // failover (and discovery?) remember whatever SSL context was active at initial creation in 5.5.1-5.10.0 at least
+        SslContext origSslContext = SslContext.getCurrentSslContext();
+        SslContext.setCurrentSslContext(new SslContext(null, dummyTrustManager, null));
+        try 
+        {
+          amqConnInit = (ActiveMQConnection)factory.createConnection();
+        }
+        finally
+        {
+          SslContext.setCurrentSslContext(origSslContext);
+        }
+      }
+      else
+      {
+          amqConnInit = (ActiveMQConnection) factory.createConnection();
+      }
+      
+      if (amqConnInit == null) {
         throw new TransportException(LOGGER.translate("JMS_CONNECTION_FAILURE", getProperty("providerUrl").getValueAsString()));
       }
+      
+      final ActiveMQConnection amqConn = amqConnInit;
 
       Session localSession = null;
       MessageConsumer localConsumer = null;
