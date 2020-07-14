@@ -6,7 +6,7 @@
   <groupId>com.esri.geoevent.parent</groupId>
   <artifactId>activemq</artifactId>
   
-  <version>10.4.1</version><!-- project version is minimum GeoEvent SDK version -->
+  <version>10.7.1</version>
   
   <packaging>pom</packaging>
 
@@ -16,9 +16,9 @@
   <properties>
     <contact.address>geoevent@esri.com</contact.address>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.bundle.plugin.version>3.5.0</maven.bundle.plugin.version>
+    <maven.bundle.plugin.version>4.2.1</maven.bundle.plugin.version>
     
-    <activemq.version>5.15.10</activemq.version>
+    <activemq.version>5.15.13</activemq.version>
   </properties>
 
   <modules>
